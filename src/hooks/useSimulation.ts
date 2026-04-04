@@ -65,7 +65,8 @@ export function useSimulation() {
               const combined = [...newRealThreats, ...prev].sort((a, b) => 
                 b.timestamp.getTime() - a.timestamp.getTime()
               );
-              return combined.slice(0, 150);
+              // Initialize with exactly 100 threats to prevent instant 500 cap
+              return combined.slice(0, 100);
             });
           }
         }
@@ -75,8 +76,9 @@ export function useSimulation() {
     };
 
     fetchRealData();
-    const interval = setInterval(fetchRealData, 5000);
-    return () => clearInterval(interval);
+    // Stop the 5-second interval of fetching static data to prevent it overriding our cap
+    // const interval = setInterval(fetchRealData, 5000);
+    // return () => clearInterval(interval);
   }, []);
 
   // Set up threat counts for companies
@@ -100,14 +102,43 @@ export function useSimulation() {
       return;
     }
 
-    const scheduleNext = () => {};
-    // Only run scheduleNext to keep timer going, NO simulated data gets generated here anymore
+    const scheduleNext = () => {
+      // 2 minutes (120,000 ms) static interval for scanning
+      const delay = 120000; 
+      timerRef.current = setTimeout(() => {
+        setThreats(prev => {
+          // Stop adding if we reach 500
+          if (prev.length >= 500) return prev;
+          
+          const simData = generateSimulatedData(monitoredCompanies.map(c => c.name));
+          const analysis = analyzeData(simData.content, simData.sourceName);
+          
+          if (analysis.riskScore > 85) {
+            setAlerts(prevAlerts => [{
+              id: `ALT-${analysis.id}`,
+              threatId: analysis.id,
+              timestamp: new Date(),
+              riskScore: analysis.riskScore,
+              riskLevel: analysis.riskLevel,
+              source: analysis.source,
+              message: `CRITICAL AI ALERT: Risk Score ${analysis.riskScore.toFixed(0)} - Immediate action required.`,
+              dismissed: false
+            }, ...prevAlerts].slice(0, 5));
+          }
+
+          return [analysis, ...prev];
+        });
+
+        scheduleNext();
+      }, delay);
+    };
+
     scheduleNext();
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [isSimulating]);
+  }, [isSimulating, monitoredCompanies]);
 
   const toggleSimulation = useCallback(() => {
     setIsSimulating(prev => !prev);
