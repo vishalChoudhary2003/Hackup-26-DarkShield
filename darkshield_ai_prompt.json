@@ -1,0 +1,52 @@
+{
+  "project_name": "DarkShield AI - Scalable Threat Intelligence Module",
+  "ai_instructions": "Acting as an expert Full-Stack Software Engineer, read this complete architecture layout and recreate the system matching these exact technical specifications, features, and UI interactions.",
+  "tech_stack": {
+    "frontend": ["React", "TypeScript", "Vite", "Tailwind CSS", "Lucide React"],
+    "backend": ["Node.js", "ExpressJS", "Mongoose", "Playwright", "Child_Process"]
+  },
+  "core_behavior": {
+    "data_flow": "React polls GET /api/threats every 5000ms. UI has an Add Org button. Hitting SCAN triggers POST /api/scan with URL. Node backend pushes a '[AUTO-TRACKING INITIATED]' event. Node spins up Headless Playwright script mapping .onion to proxy. Playwright prints '## Launching...' which Node catches via stdout. Node injects those live intermediate chat-logs into memory and MongoDB as MEDIUM risk traces. Upon completion, Playwright saves JSON, Node reads JSON, formats completely, puts HIGH RISK log into DB.",
+    "automation": "server.js has a setInterval running every 45000ms scanning an array of strings (e.g., pastebin.com) continuously mapping background scans without user input."
+  },
+  "modules": {
+    "react_dashboard": {
+      "theme": "Dark mode 'Cybersecurity Command Center', glowing borders, glassmorphism UI.",
+      "components": [
+        "LiveFeed: Center grid monitoring live traces and JSON final outputs. Pulsing indicators.",
+        "CompanyMonitor (Affected Companies): Right sidebar. Reads complete array of threats dynamically aggregating the top 10 companies detected, bypassing fixed lists.",
+        "OrganizationMonitoring: Add Modal that allows inputting Custom Names if not in default list. View details triggers a focused feed."
+      ]
+    },
+    "express_bridge": {
+      "file": "server.js",
+      "logic": "Provides seamless JSON API. Uses Mongoose to connect to 'darkshield_intelligence' database."
+    },
+    "scraper_engine": {
+      "file": "fast_crawler.js",
+      "logic": "Extracts unique emails using Regex against document.body.innerText. Maps <a> tags finding sensitive raw databases. Executes fast and closes. Returns payload matching TorCrawl structures."
+    }
+  },
+  "database_schema": {
+    "ThreatSchema": {
+      "id": "String",
+      "companyName": "String (With explicit strict fallback to null if parsing fails. Extracts pure domain name without www.)",
+      "source": "String",
+      "sourceType": "String",
+      "content": "String",
+      "timestamp": "Date",
+      "analyzedAt": "Date",
+      "entities": {
+        "emails": "Array of Strings",
+        "passwords": "Array of Strings",
+        "companies": "Array of Strings (Always avoids [null], instead keeps [])",
+        "ipAddresses": "Array of Strings",
+        "keywords": "Array of Strings"
+      },
+      "riskScore": "Number",
+      "riskLevel": "String",
+      "riskBreakdown": "Object Score",
+      "isReal": "Boolean"
+    }
+  }
+}

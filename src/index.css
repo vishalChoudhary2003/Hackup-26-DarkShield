@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+@theme {
+  /* ===== DARKSHIELD SOC COLOR SYSTEM - GREEN EDITION ===== */
+  --color-bg-primary:    #06080D;
+  --color-bg-secondary:  #0D111A;
+  --color-bg-card:       #151C26;
+  --color-bg-deep:       #040608;
+
+  --color-accent-green:  #00FF9F;
+  --color-accent-purple: #7B61FF;
+
+  --color-risk-high:     #FF4444;
+  --color-risk-medium:   #FFC857;
+  --color-risk-low:      #00FF9F;
+
+  --color-text-primary:  #FFFFFF;
+  --color-text-secondary:#9CA3AF;
+  --color-border:        #2D3748;
+
+  /* Legacy aliases updated for the new theme */
+  --color-cyber-bg:      #06080D;
+  --color-cyber-green:   #00FF9F;
+  --color-cyber-purple:  #7B61FF;
+  --color-cyber-red:     #FF4444;
+  --color-cyber-yellow:  #FFC857;
+}
+
+/* ===== GLOBAL RESETS ===== */
+body {
+  background-color: #06080D;
+  color: #FFFFFF;
+  font-family: 'Inter', 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 16px;
+  line-height: 1.6;
+  cursor: default;
+}
+
+/* ===== TERMINAL STYLE EFFECTS ===== */
+.terminal-text {
+  color: #00FF9F;
+  text-shadow: 0 0 8px rgba(0, 255, 159, 0.4);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.terminal-cursor::after {
+  content: '_';
+  animation: blink 1s step-end infinite;
+  color: #00FF9F;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ===== GLOBAL GLOW UTILITIES ===== */
+@layer utilities {
+
+  /* Card glass morphism */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(21, 28, 38, 0.8) 0%, rgba(13, 17, 26, 0.9) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(45, 55, 72, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    border-color: rgba(0, 255, 159, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 255, 159, 0.05);
+  }
+
+  /* Neon green glow — buttons, active elements */
+  .glow-green {
+    box-shadow: 0 0 15px rgba(0, 255, 159, 0.3), 0 0 30px rgba(0, 255, 159, 0.1);
+  }
+
+  .glow-green:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 159, 0.5), 0 0 40px rgba(0, 255, 159, 0.2);
+  }
+
+  /* Red glow — high risk alerts */
+  .glow-red {
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.3), 0 0 30px rgba(255, 68, 68, 0.1);
+  }
+
+  /* Animated gradient border (Green to Deep Blue) */
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #00FF9F, #06080D);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* SOC risk badge utilities - New Green scheme */
+  .badge-high {
+    background: rgba(255, 68, 68, 0.1);
+    color: #FF4444;
+    border: 1px solid rgba(255, 68, 68, 0.2);
+  }
+
+  .badge-medium {
+    background: rgba(255, 200, 87, 0.1);
+    color: #FFC857;
+    border: 1px solid rgba(255, 200, 87, 0.2);
+  }
+
+  .badge-low {
+    background: rgba(0, 255, 159, 0.1);
+    color: #00FF9F;
+    border: 1px solid rgba(0, 255, 159, 0.2);
+  }
+
+  /* Pulsing green dot — active system */
+  .pulse-active {
+    animation: pulse-green 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 159, 0.4); }
+    50%       { box-shadow: 0 0 0 8px rgba(0, 255, 159, 0); }
+  }
+
+  /* Matrix-style subtle scan line */
+  .matrix-bg::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 255, 159, 0.03) 0px,
+      rgba(0, 255, 159, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.5;
+  }
+}
+
+/* ===== CUSTOM SCROLLBAR ===== */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: #06080D; }
+::-webkit-scrollbar-thumb  { background: #151C26; border-radius: 10px; border: 1px solid rgba(0, 255, 159, 0.1); }
+::-webkit-scrollbar-thumb:hover { background: #00FF9F; box-shadow: 0 0 10px rgba(0, 255, 159, 0.5); }
+
+/* ===== INPUT FOCUS RING ===== */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #00FF9F !important;
+  box-shadow: 0 0 0 3px rgba(0, 255, 159, 0.1);
+  background: rgba(0, 255, 159, 0.02) !important;
+}
+
+/* ===== SOC SCAN OVERLAY ===== */
+.soc-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 50% 50%, rgba(0, 255, 159, 0.02) 0%, transparent 70%),
+    radial-gradient(circle at 0% 0%, rgba(6, 8, 13, 1) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
