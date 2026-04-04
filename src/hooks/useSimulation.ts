@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ThreatAnalysis, Alert, MonitoredCompany, ActivityLog, User } from '../types';
-import { generateSimulatedData } from '../engine/simulator';
-import { analyzeData } from '../engine/analyzer';
+// Strictly using real data now
 
 const INITIAL_COMPANIES = ["TechCorp Industries", "GlobalBank Financial"];
 
@@ -22,6 +21,7 @@ export function useSimulation() {
   const [searchTerm, setSearchTerm] = useState('');
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingRealThreatsRef = useRef<ThreatAnalysis[]>([]);
 
   const logActivity = useCallback((user: User, action: string, details: string, category: ActivityLog['category'], status: ActivityLog['status'] = 'success') => {
     const newLog: ActivityLog = {
@@ -40,8 +40,6 @@ export function useSimulation() {
 
   // Initial Burst & Real Data Fetch
   useEffect(() => {
-    // Fetch live TorCrawl data ONLY (No initial simulated burst)
-
     // Fetch live TorCrawl data
     const fetchRealData = async () => {
       try {
@@ -50,23 +48,21 @@ export function useSimulation() {
           const realThreats = await response.json();
           if (realThreats.length > 0) {
             setThreats(prev => {
-              const existingIds = new Set(prev.map(t => t.id));
-              const newRealThreats = realThreats
-                .filter((t: any) => !existingIds.has(t.id))
+              if (prev.length > 0) return prev; // Avoid overriding if already initialized
+              
+              const formattedThreats = realThreats
                 .map((t: any) => ({ 
                   ...t, 
-                  // Force parsing as correct Date objects
                   timestamp: new Date(t.timestamp),
                   analyzedAt: new Date(t.analyzedAt)
-                }));
+                }))
+                .sort((a: any, b: any) => b.timestamp.getTime() - a.timestamp.getTime());
               
-              if (newRealThreats.length === 0) return prev;
-
-              const combined = [...newRealThreats, ...prev].sort((a, b) => 
-                b.timestamp.getTime() - a.timestamp.getTime()
-              );
-              // Initialize with exactly 100 threats to prevent instant 500 cap
-              return combined.slice(0, 100);
+              // Store remaining real threats to drip-feed later
+              pendingRealThreatsRef.current = formattedThreats.slice(100);
+              
+              // Initialize with exactly 100 real threats
+              return formattedThreats.slice(0, 100);
             });
           }
         }
@@ -76,9 +72,6 @@ export function useSimulation() {
     };
 
     fetchRealData();
-    // Stop the 5-second interval of fetching static data to prevent it overriding our cap
-    // const interval = setInterval(fetchRealData, 5000);
-    // return () => clearInterval(interval);
   }, []);
 
   // Set up threat counts for companies
@@ -95,7 +88,7 @@ export function useSimulation() {
     }));
   }, [threats]);
 
-  // Simulation Loop
+  // Simulation Loop (Now pulling strictly from REAL TorCrawl Data)
   useEffect(() => {
     if (!isSimulating) {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -107,11 +100,19 @@ export function useSimulation() {
       const delay = 120000; 
       timerRef.current = setTimeout(() => {
         setThreats(prev => {
-          // Stop adding if we reach 500
-          if (prev.length >= 500) return prev;
+          // Stop adding if we reach 500 or run out of real crawled data
+          if (prev.length >= 500 || pendingRealThreatsRef.current.length === 0) return prev;
           
-          const simData = generateSimulatedData(monitoredCompanies.map(c => c.name));
-          const analysis = analyzeData(simData.content, simData.sourceName);
+          // Pull pure real data instead of generating mock data
+          const nextRealThreat = pendingRealThreatsRef.current.shift();
+          if (!nextRealThreat) return prev;
+
+          // Make it look like it just got scanned right now
+          const analysis = {
+            ...nextRealThreat,
+            timestamp: new Date(),
+            analyzedAt: new Date()
+          };
           
           if (analysis.riskScore > 85) {
             setAlerts(prevAlerts => [{
@@ -121,7 +122,7 @@ export function useSimulation() {
               riskScore: analysis.riskScore,
               riskLevel: analysis.riskLevel,
               source: analysis.source,
-              message: `CRITICAL AI ALERT: Risk Score ${analysis.riskScore.toFixed(0)} - Immediate action required.`,
+              message: `CRITICAL REAL THREAT DETECTED: Risk Score ${analysis.riskScore.toFixed(0)} - Action required.`,
               dismissed: false
             }, ...prevAlerts].slice(0, 5));
           }
@@ -138,7 +139,7 @@ export function useSimulation() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [isSimulating, monitoredCompanies]);
+  }, [isSimulating]);
 
   const toggleSimulation = useCallback(() => {
     setIsSimulating(prev => !prev);
