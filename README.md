@@ -54,3 +54,10 @@ By default, the application runs a mock simulation authentication engine to demo
 
 ---
 *Built for the next generation of active Cyber Defense.*
+
+## 👨‍💻 My Contribution
+- Developed frontend components and improved UI/UX  
+- Designed and structured the user interface  
+- Collected and processed data for analysis  
+- Assisted in integrating data into the system  
+- Collaborated with team Code 0 during Hackup 26  
